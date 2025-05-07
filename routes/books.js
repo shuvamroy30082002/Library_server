@@ -358,4 +358,14 @@ router.delete("/delete/:id", async (req, res) => {
     }
   });
 
+// Count total number of available books (not issued)
+router.get("/count", async (req, res) => {
+  try {
+  const availableCount = await Book.countDocuments({ isIssued: false });
+  res.json({ availableCount });
+  } catch (err) {
+  res.status(500).json({ message: "Failed to count available books", error: err.message });
+  }
+  });
+
 module.exports = router;
