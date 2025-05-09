@@ -5,6 +5,7 @@ const userRoutes = require("./user");
 const bookRoutes = require("./books"); 
 const fineRoutes = require("./fineConfig"); 
 const logRoutes = require("./activity-log"); 
+// const userRoutes = require("./user"); 
 
 
 const router = express.Router();
@@ -21,5 +22,7 @@ router.use("/books", bookRoutes);
 router.use("/fine", fineRoutes);
 
 router.use("/log", logRoutes);
+
+// router.use("/user", userRoutes);
 
 module.exports = router;

@@ -370,4 +370,44 @@ router.get("/count", async (req, res) => {
   }
   });
 
+
+
+// GET book details by bookNo
+router.get("/:bookNo", async (req, res) => {
+  try {
+    const { bookNo } = req.params;
+    const book = await Book.findOne({ bookNo });
+
+    if (!book) {
+      return res.status(404).json({ message: "Book not found" });
+    }
+
+    res.json(book);
+  } catch (error) {
+    console.error("Error fetching book:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+// PUT /api/books/:bookNo
+router.put('/:bookNo', async (req, res) => {
+  try {
+    const updatedBook = await Book.findOneAndUpdate(
+      { bookNo: req.params.bookNo },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedBook) {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+
+    res.json(updatedBook);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 module.exports = router;
