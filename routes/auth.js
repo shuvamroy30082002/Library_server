@@ -130,4 +130,27 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Logout Route
+// POST /api/auth/logout
+router.post("/logout", (req, res) => {
+  try {
+    res.clearCookie(COOKIE_NAME, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logout successful.",
+    });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during logout.",
+    });
+  }
+});
+
 module.exports = router;

@@ -140,11 +140,11 @@ router.post("/addbooks", async (req, res) => {
 // POST /api/books/issue
 router.post("/issue", async (req, res) => {
     try {
-      const { bookNo, nameOfBook, dateOfIssue, dateOfReturn, noOfDays } = req.body;
+      const { bookNo, nameOfBook, dateOfIssue, dateOfReturn, noOfDays, issuedTo } = req.body;
   
       // Validate required fields
-      if (!bookNo || !nameOfBook || !dateOfIssue || !dateOfReturn || !noOfDays) {
-        return res.status(400).json({ success: false, message: "All fields are required." });
+      if (!bookNo || !nameOfBook || !dateOfIssue || !dateOfReturn || !noOfDays || !issuedTo ) {
+        return res.status(400).json({ success: false, message: "All fields are requiredssss." });
       }
   
       // Check if the book exists in the Book model
@@ -170,6 +170,7 @@ router.post("/issue", async (req, res) => {
         dateOfIssue,
         dateOfReturn,
         noOfDays,
+        issuedTo,
       });
       await issuedBook.save();
   
