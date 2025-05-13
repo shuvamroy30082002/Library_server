@@ -7,33 +7,7 @@ const FineConfig = require("../models/FineConfig");
 
 const router = express.Router();
 
-// // server/routes/books.js
-// router.get("/displaybooks", async (req, res) => {
-//     try {
-//       const { page = 1, limit = 10 } = req.query; // Default to page 1 and 10 items per page
-  
-//       // Calculate skip value
-//       const skip = (parseInt(page) - 1) * parseInt(limit);
-  
-//       // Fetch paginated books
-//       const books = await Book.find()
-//         .select("-__v")
-//         .skip(skip)
-//         .limit(parseInt(limit));
-  
-//       // Get total count of books
-//       const totalBooks = await Book.countDocuments();
-  
-//       res.json({
-//         success: true,
-//         books,
-//         totalPages: Math.ceil(totalBooks / parseInt(limit)),
-//         currentPage: parseInt(page),
-//       });
-//     } catch (err) {
-//       res.status(500).json({ success: false, message: "Failed to fetch books." });
-//     }
-//   });
+
 
 router.get("/displaybooks", async (req, res) => {
   try {
@@ -45,7 +19,7 @@ router.get("/displaybooks", async (req, res) => {
     // Fetch paginated books sorted by _id in descending order (newest first)
     const books = await Book.find()
       .select("-__v") // Exclude the __v field
-      .sort({ _id: -1 }) // Sort by _id in descending order (newest first)
+      .sort({ _id: 1 }) // Sort by _id in descending order (newest first)
       .skip(skip) // Skip records based on pagination
       .limit(parseInt(limit)); // Limit the number of records per page
 
@@ -63,6 +37,57 @@ router.get("/displaybooks", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to fetch books." });
   }
 });
+
+router.get("/displaybooks/p", async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const books = await Book.find({ bookNo: { $regex: /^P -/, $options: 'i' } })
+      .select("-__v")
+      .sort({ _id: 1 }) // ascending (oldest first)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const totalBooks = await Book.countDocuments({ bookNo: { $regex: /^P -/, $options: 'i' } });
+
+    res.json({
+      success: true,
+      books,
+      totalPages: Math.ceil(totalBooks / parseInt(limit)),
+      currentPage: parseInt(page),
+    });
+  } catch (err) {
+    console.error("Error fetching P-books:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch P-books." });
+  }
+});
+
+router.get("/displaybooks/s", async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const books = await Book.find({ bookNo: { $regex: /^S -/, $options: 'i' } })
+      .select("-__v")
+      .sort({ _id: 1 }) // ascending (oldest first)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const totalBooks = await Book.countDocuments({ bookNo: { $regex: /^S -/, $options: 'i' } });
+
+    res.json({
+      success: true,
+      books,
+      totalPages: Math.ceil(totalBooks / parseInt(limit)),
+      currentPage: parseInt(page),
+    });
+  } catch (err) {
+    console.error("Error fetching S-books:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch S-books." });
+  }
+});
+
 
 
 
@@ -98,44 +123,7 @@ router.post("/addbooks", async (req, res) => {
       }
     });
 
-// // POST /api/books/issue
-// router.post("/issue", async (req, res) => {
-//     try {
-//       const { bookNo, nameOfBook, dateOfIssue, dateOfReturn, noOfDays } = req.body;
-  
-//       // Validate required fields
-//       if (!bookNo || !nameOfBook || !dateOfIssue || !dateOfReturn || !noOfDays) {
-//         return res.status(400).json({ success: false, message: "All fields are required." });
-//       }
-  
-//       // Check if the book exists in the Book model
-//       const book = await Book.findOne({ bookNo });
-//       if (!book) {
-//         return res.status(404).json({ success: false, message: "Book not found." });
-//       }
-  
-//       // Check if the book is already issued
-//       const alreadyIssued = await IssuedBook.findOne({ bookNo, isReturned: false });
-//       if (alreadyIssued) {
-//         return res.status(400).json({ success: false, message: "This book is already issued." });
-//       }
-  
-//       // Save the issued book details in the IssuedBook model
-//       const issuedBook = new IssuedBook({
-//         bookNo,
-//         nameOfBook,
-//         dateOfIssue,
-//         dateOfReturn,
-//         noOfDays,
-//       });
-//       await issuedBook.save();
-  
-//       res.status(200).json({ success: true, message: "Book issued successfully.", issuedBook });
-//     } catch (err) {
-//       console.error("Error issuing book:", err);
-//       res.status(500).json({ success: false, message: "Failed to issue the book." });
-//     }
-//   });
+
 
 // POST /api/books/issue
 router.post("/issue", async (req, res) => {
@@ -182,16 +170,7 @@ router.post("/issue", async (req, res) => {
   });
 
 
-// // GET /api/books/issued
-// router.get("/issued", async (req, res) => {
-//     try {
-//       // Fetch only issued books where isReturned is false
-//       const issuedBooks = await IssuedBook.find({ isReturned: false }).select("-__v");
-//       res.json({ success: true, issuedBooks });
-//     } catch (err) {
-//       res.status(500).json({ success: false, message: "Failed to fetch issued books." });
-//     }
-//   });
+
 
 // GET /api/books/issued
 router.get("/issued", async (req, res) => {
@@ -232,54 +211,7 @@ router.get("/issued", async (req, res) => {
 
 
 
-// // POST /api/books/mark-returned/:id
-// router.post("/mark-returned/:id", async (req, res) => {
-//     try {
-//       const { id } = req.params;
-  
-//       // Find the issued book by ID
-//       const issuedBook = await IssuedBook.findById(id);
-//       if (!issuedBook) {
-//         return res.status(404).json({ success: false, message: "Issued book not found." });
-//       }
-  
-//       // Update the isReturned field to true
-//       issuedBook.isReturned = true;
-//       await issuedBook.save();
-  
-//       res.status(200).json({ success: true, message: "Book marked as returned.", issuedBook });
-//     } catch (err) {
-//       res.status(500).json({ success: false, message: "Failed to mark the book as returned." });
-//     }
-//   });
 
-// // POST /api/books/mark-returned/:id
-// router.post("/mark-returned/:id", async (req, res) => {
-//     try {
-//       const { id } = req.params;
-  
-//       // Find the issued book by ID
-//       const issuedBook = await IssuedBook.findById(id);
-//       if (!issuedBook) {
-//         return res.status(404).json({ success: false, message: "Issued book not found." });
-//       }
-  
-//       // Update the isReturned field to true
-//       issuedBook.isReturned = true;
-//       await issuedBook.save();
-  
-//       // Update the Book model to mark it as not issued
-//       const book = await Book.findOne({ bookNo: issuedBook.bookNo });
-//       if (book) {
-//         book.isIssued = false;
-//         await book.save();
-//       }
-  
-//       res.status(200).json({ success: true, message: "Book marked as returned.", issuedBook });
-//     } catch (err) {
-//       res.status(500).json({ success: false, message: "Failed to mark the book as returned." });
-//     }
-//   });
 
 
 // POST /api/books/mark-returned/:id
